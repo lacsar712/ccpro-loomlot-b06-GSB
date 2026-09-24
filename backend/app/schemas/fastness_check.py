@@ -26,6 +26,14 @@ class FastnessCheckUpdate(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
+class FastnessCheckDispatch(BaseModel):
+    """外发请求体：写入实验室外发编号。"""
+
+    lab_ref_no: str = Field(..., min_length=1, alias="labRefNo")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class FastnessCheckOut(BaseModel):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
@@ -36,3 +44,4 @@ class FastnessCheckOut(BaseModel):
     rub_fastness: float = Field(serialization_alias="rubFastness")
     temp_c: float = Field(serialization_alias="tempC")
     notes: Optional[str] = None
+    lab_ref_no: Optional[str] = Field(default=None, serialization_alias="labRefNo")

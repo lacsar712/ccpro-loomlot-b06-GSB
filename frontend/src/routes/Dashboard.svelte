@@ -42,7 +42,7 @@
     </div>
     <div class="stat">
       <div class="n">{stats.checksLast24h}</div>
-      <div class="l">近 24 时抽检</div>
+      <div class="l">今日已外发抽检</div>
     </div>
   </div>
 {/if}
@@ -50,6 +50,7 @@
 <div class="panel">
   <p style="margin:0 0 0.75rem;color:var(--indigo-mist);font-size:0.9rem;">
     业务约束：仅当染缸为 <strong>ready</strong> 或 <strong>dyeing</strong> 时可新建染程；新建后染缸自动变为 dyeing。排液可用染缸「完成排液」动作。
+    色牢度抽检有外发编号即<strong>已外发</strong>，耐洗/摩擦/温度锁定不可改；「今日已外发抽检」与色牢度页外发清单按日过滤行数一致，未外发不计入。
   </p>
   <div class="toolbar">
     <a class="btn" href="/houses" use:link>进入染坊</a>

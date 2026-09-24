@@ -99,21 +99,27 @@ def seed() -> None:
             v3.status = "ready"
             db.add_all(
                 [
+                    # 未外发：外发编号为空，操作员仍可建改
                     FastnessCheck(
                         dye_lot_id=lot1.id,
-                        checked_at=now - timedelta(hours=1),
+                        dye_house_id=h1.id,
+                        checked_at=now - timedelta(hours=2),
                         wash_fastness=4,
                         rub_fastness=3.5,
                         temp_c=40.0,
                         notes="湿摩略偏，可出货",
+                        lab_ref_no=None,
                     ),
+                    # 已外发：外发编号非空，耐洗/摩擦/温度锁定（检测时间取当日，外发清单默认今日可见）
                     FastnessCheck(
                         dye_lot_id=lot2.id,
-                        checked_at=now - timedelta(days=1),
+                        dye_house_id=h2.id,
+                        checked_at=now - timedelta(minutes=30),
                         wash_fastness=5,
                         rub_fastness=4.0,
                         temp_c=37.0,
-                        notes=None,
+                        notes="实验室回件合格",
+                        lab_ref_no=f"LAB-{now.strftime('%Y%m%d')}-01",
                     ),
                 ]
             )
@@ -121,6 +127,65 @@ def seed() -> None:
             print("Seed data inserted.")
         else:
             print("Seed skipped (data exists).")
+
+        # 既有卷幂等补齐：保证未外发/已外发各至少一条可演示
+        now = datetime.now(timezone.utc)
+        added = False
+        if db.query(FastnessCheck).filter(FastnessCheck.lab_ref_no.is_(None)).count() == 0:
+            lot = (
+                db.query(DyeLot)
+                .join(Vat, Vat.id == DyeLot.vat_id)
+                .order_by(DyeLot.id)
+                .first()
+            )
+            if lot:
+                vat = db.query(Vat).filter(Vat.id == lot.vat_id).first()
+                db.add(
+                    FastnessCheck(
+                        dye_lot_id=lot.id,
+                        dye_house_id=vat.dye_house_id,
+                        checked_at=now - timedelta(hours=1),
+                        wash_fastness=4,
+                        rub_fastness=3.5,
+                        temp_c=40.0,
+                        notes="种子补齐：未外发",
+                        lab_ref_no=None,
+                    )
+                )
+                added = True
+        if db.query(FastnessCheck).filter(FastnessCheck.lab_ref_no.isnot(None)).count() == 0:
+            lot = (
+                db.query(DyeLot)
+                .join(Vat, Vat.id == DyeLot.vat_id)
+                .order_by(DyeLot.id.desc())
+                .first()
+            )
+            if lot:
+                vat = db.query(Vat).filter(Vat.id == lot.vat_id).first()
+                ref = f"LAB-{now.strftime('%Y%m%d')}-SEED"
+                # 同坊撞号时换一个号
+                while (
+                    db.query(FastnessCheck.id)
+                    .filter(FastnessCheck.dye_house_id == vat.dye_house_id, FastnessCheck.lab_ref_no == ref)
+                    .first()
+                ):
+                    ref += "X"
+                db.add(
+                    FastnessCheck(
+                        dye_lot_id=lot.id,
+                        dye_house_id=vat.dye_house_id,
+                        checked_at=now - timedelta(minutes=30),
+                        wash_fastness=5,
+                        rub_fastness=4.0,
+                        temp_c=37.0,
+                        notes="种子补齐：已外发",
+                        lab_ref_no=ref,
+                    )
+                )
+                added = True
+        if added:
+            db.commit()
+            print("Seed supplemented with pending/outbound fastness checks.")
     finally:
         db.close()
 
