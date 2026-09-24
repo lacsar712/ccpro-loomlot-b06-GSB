@@ -99,21 +99,27 @@ def seed() -> None:
             v3.status = "ready"
             db.add_all(
                 [
+                    # 未外发：操作员仍可登记与修改测值
                     FastnessCheck(
                         dye_lot_id=lot1.id,
-                        checked_at=now - timedelta(hours=1),
+                        dye_house_id=h1.id,
+                        checked_at=now - timedelta(hours=2),
                         wash_fastness=4,
                         rub_fastness=3.5,
                         temp_c=40.0,
-                        notes="湿摩略偏，可出货",
+                        notes="湿摩略偏，待复测",
+                        outbound_no=None,
                     ),
+                    # 已外发：编号在同坊唯一，测值已锁定
                     FastnessCheck(
                         dye_lot_id=lot2.id,
-                        checked_at=now - timedelta(days=1),
+                        dye_house_id=h2.id,
+                        checked_at=now - timedelta(hours=20),
                         wash_fastness=5,
                         rub_fastness=4.0,
                         temp_c=37.0,
                         notes=None,
+                        outbound_no="OUT-02-20260101-0001",
                     ),
                 ]
             )

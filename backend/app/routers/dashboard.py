@@ -34,7 +34,10 @@ def get_stats(
         ),
         checks_last_24h=(
             db.query(func.count(FastnessCheck.id))
-            .filter(FastnessCheck.checked_at >= now - timedelta(hours=24))
+            .filter(
+                FastnessCheck.checked_at >= now - timedelta(hours=24),
+                FastnessCheck.outbound_no.isnot(None),
+            )
             .scalar()
             or 0
         ),

@@ -50,13 +50,18 @@ docker compose down
 1. **DyeHouse** — `name`, `waterNote`, `notes`
 2. **Vat** — `dyeHouseId`, `vatCode`, `fiberType`, `capacityL`, `status` ∈ `ready|dyeing|drain`
 3. **DyeLot** — `vatId`, `recipeName`, `fabricKg`, `startedAt`, `operatorName`
-4. **FastnessCheck** — `dyeLotId`, `checkedAt`, `washFastness`(1–5), `rubFastness`(>0), `tempC`, `notes`
+4. **FastnessCheck** — `dyeLotId`, `checkedAt`, `washFastness`(1–5), `rubFastness`(>0), `tempC`, `notes`, `outboundNo`（实验室外发编号）
 
 ### 规则
 
 - 仅当染缸状态为 `ready` 或 `dyeing` 时可新建染程，否则 409
 - 新建染程后，染缸状态自动设为 `dyeing`
 - 可选接口：`POST /api/vats/{id}/drain` 将染缸置为 `drain`
+- 色牢度抽检新建时 `outboundNo` 为空（未外发）。外发由主管通过 `POST /api/fastness-checks/{id}/dispatch` 写入唯一外发编号，编号**同一染坊内唯一**，冲突返回 409
+- 有外发编号即视为**已外发**：耐洗、耐摩擦、温度一律锁定，尝试修改返回 409（中文提示）；已外发记录不可删除、不可重复外发、不可改挂染程
+- 列表分流：`GET /api/fastness-checks` 默认仅返回**未外发**；`?dispatched=true` 为**仅外发清单**，可用 `&day=YYYY-MM-DD` 按检测日过滤
+- 看板「近 24 时已外发」只统计已外发抽检（`outboundNo` 非空），与外发清单同为已外发口径
+- 权限：操作员（dyer）可新建/修改未外发抽检；外发动作仅主管（admin）可执行
 
 ## 主要 API
 
@@ -65,7 +70,8 @@ docker compose down
 - `GET/POST/PUT/DELETE /api/dye-houses`
 - `GET/POST/PUT/DELETE /api/vats` · `POST /api/vats/{id}/drain`
 - `GET/POST/PUT/DELETE /api/dye-lots`
-- `GET/POST/PUT/DELETE /api/fastness-checks`
+- `GET/POST/PUT/DELETE /api/fastness-checks`（默认未外发；`?dispatched=true` 外发清单，可加 `&day=`）
+- `POST /api/fastness-checks/{id}/dispatch`（仅主管，写入同坊唯一外发编号）
 - `GET /api/dashboard/stats`
 
 除登录外需 `Authorization: Bearer <token>`。字段对外为 camelCase。

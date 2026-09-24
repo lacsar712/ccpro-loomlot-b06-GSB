@@ -42,14 +42,14 @@
     </div>
     <div class="stat">
       <div class="n">{stats.checksLast24h}</div>
-      <div class="l">近 24 时抽检</div>
+      <div class="l">近 24 时已外发</div>
     </div>
   </div>
 {/if}
 
 <div class="panel">
   <p style="margin:0 0 0.75rem;color:var(--indigo-mist);font-size:0.9rem;">
-    业务约束：仅当染缸为 <strong>ready</strong> 或 <strong>dyeing</strong> 时可新建染程；新建后染缸自动变为 dyeing。排液可用染缸「完成排液」动作。
+    业务约束：仅当染缸为 <strong>ready</strong> 或 <strong>dyeing</strong> 时可新建染程；新建后染缸自动变为 dyeing。排液可用染缸「完成排液」动作。色牢度抽检取得外发编号即视为<strong>已外发</strong>，测值锁定；近 24 时抽检仅统计已外发。
   </p>
   <div class="toolbar">
     <a class="btn" href="/houses" use:link>进入染坊</a>
